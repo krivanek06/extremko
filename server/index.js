@@ -1,26 +1,26 @@
-const http = require("http");
-const path = require("path");
-const express = require("express");
-const socketIo = require("socket.io");
-const PORT = process.env.PORT || 3000;
+// test-io-server.js
 
-const app = express();
-const server = http.createServer(app);
-const socket = socketIo(server);
+// Create the socket server
+const PORT = 3000;
+var socket = require('socket.io')(PORT);
+socket.on('connection', function(client) {
 
+    // Listen for test and disconnect events
+    client.on('test', onTest);
+    client.on('disconnect', onDisconnect);
 
+    // Handle a test event from the client
+    function onTest(data) {
+        console.log('Received: "' + data + '" from client: ' + client.id);
+        client.emit('test', "Ta seruuuus, " + client.id);
+        console.log('Vitaaaaaj Ferku, či jak še volaš...' + client.id)
+    }
 
-// serve html document from client folder on default root
-app.use('/', express.static(path.join(__dirname, "../", "client"))); //  "public" off of current is root
-
-
-
-// websocker connection established
-socket.on("connection", async () => {
-  console.log("Client connected...");
-
-  // emit random data
-  socket.emit("data", { data: "random" });
+    // Handle a disconnection from the client
+    function onDisconnect() {
+        console.log('KLIENT s takymto ideckom: ' + client.id + " še odpojil a ani neznam načo došol...");
+        client.removeListener('test', onTest);
+        client.removeListener('disconnect', onDisconnect);
+    }
 });
 
-server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
